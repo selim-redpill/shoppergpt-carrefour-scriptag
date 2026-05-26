@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import logoSrc from '../../assets/logo.svg';
 import { useRef, useEffect, useState } from 'preact/hooks';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { useShopperStore } from '../store';
 import { Message } from '../types';
@@ -33,7 +33,6 @@ function StreamingBubble({ text }: { text: string }) {
       <div class="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1">
         <ReactMarkdown>{text}</ReactMarkdown>
       </div>
-      <span class="inline-block w-0.5 h-3.5 bg-carrefour-blue rounded-sm ml-0.5 align-middle animate-pulse" />
     </div>
   );
 }
@@ -42,8 +41,10 @@ function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === 'user';
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      layout
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: 'easeOut' }}
       class={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}
     >
       {!isUser && (
@@ -76,6 +77,7 @@ function MessageBubble({ message }: { message: Message }) {
 export function ChatPanel() {
   const { messages, isLoading, addMessage, setIsLoading, setProducts, setActiveTab, jwt, setJwt, store } =
     useShopperStore();
+  const shouldReduceMotion = useReducedMotion();
   const [input, setInput] = useState('');
   const [question, setQuestion] = useState<string | null>(null);
   const [streamingText, setStreamingText] = useState('');
@@ -163,7 +165,26 @@ export function ChatPanel() {
           <p class="font-semibold text-sm">Assistant Traiteur</p>
           <p class="text-xs text-blue-200">{store?.store_name ?? 'Carrefour'} · En ligne</p>
         </div>
-        <div class="ml-auto w-2 h-2 bg-green-400 rounded-full" />
+        <motion.div
+          class="ml-auto w-2 h-2 bg-green-400 rounded-full"
+          animate={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  scale: [1, 1.18, 1],
+                  opacity: [0.9, 1, 0.9],
+                }
+          }
+          transition={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  duration: 1.8,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }
+          }
+        />
       </div>
 
       {/* Messages */}
@@ -171,12 +192,14 @@ export function ChatPanel() {
         {messages.map(msg => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
-        <AnimatePresence>
+        <AnimatePresence initial={false} mode="wait">
           {isWaiting && (
             <motion.div
+              key="waiting"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
               class="flex justify-start mb-3"
             >
               <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 mr-2 mt-1">
@@ -187,8 +210,11 @@ export function ChatPanel() {
           )}
           {isStreaming && (
             <motion.div
+              key="streaming"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
               class="flex justify-start mb-3"
             >
               <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 mr-2 mt-1">
@@ -204,14 +230,27 @@ export function ChatPanel() {
       {/* Quick replies */}
       <div class="px-4 py-2 bg-white border-t border-gray-100 flex gap-2 overflow-x-auto flex-shrink-0">
         {['Pour 10 personnes', 'Moins de 80€', 'Sans allergènes', 'Voir les desserts'].map(
-          suggestion => (
-            <button
+          (suggestion, index) => (
+            <motion.button
               key={suggestion}
               onClick={() => setInput(suggestion)}
+              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 4 }}
+              animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+              transition={
+                shouldReduceMotion
+                  ? undefined
+                  : {
+                      duration: 0.2,
+                      delay: index * 0.04,
+                      ease: 'easeOut',
+                    }
+              }
+              whileHover={shouldReduceMotion ? undefined : { y: -1 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
               class="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border border-carrefour-blue text-carrefour-blue hover:bg-carrefour-blue hover:text-white transition-colors whitespace-nowrap"
             >
               {suggestion}
-            </button>
+            </motion.button>
           )
         )}
       </div>
@@ -227,9 +266,11 @@ export function ChatPanel() {
           class="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-carrefour-blue transition-colors max-h-24"
           style={{ minHeight: '42px' }}
         />
-        <button
+        <motion.button
           onClick={() => setActiveTab('products')}
           title="Voir les produits"
+          whileHover={shouldReduceMotion ? undefined : { scale: 1.04 }}
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
           class="p-2.5 text-gray-400 hover:text-carrefour-blue transition-colors"
         >
           <svg
@@ -241,16 +282,18 @@ export function ChatPanel() {
           >
             <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           onClick={sendMessage}
           disabled={!input.trim() || isLoading}
+          whileHover={shouldReduceMotion || !input.trim() || isLoading ? undefined : { scale: 1.04 }}
+          whileTap={shouldReduceMotion || !input.trim() || isLoading ? undefined : { scale: 0.96 }}
           class="p-2.5 bg-carrefour-blue text-white rounded-xl hover:bg-carrefour-lightBlue disabled:opacity-40 transition-colors"
         >
           <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
           </svg>
-        </button>
+        </motion.button>
       </div>
     </div>
   );

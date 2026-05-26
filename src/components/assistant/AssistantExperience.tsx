@@ -1,21 +1,23 @@
-import { h } from "preact";
-import { useRef, useEffect, useState, useCallback } from "preact/hooks";
-import { useShopperStore } from "../../store";
-import { Product } from "../../types";
-import { useChatAnswer, MetaPayload } from "../../hooks/useChatAnswer";
-import { extractProducts } from "../../utils/productExtractor";
-import { EditorialPanel } from "./editorial/EditorialPanel";
-import { MessageBubble, StreamingBubble, TypingIndicator } from "./messages/MessageThread";
-import { ProductSuggestionCard } from "./products/ProductSuggestionCard";
-import { ChatInputBar } from "./input/ChatInputBar";
+import { h } from 'preact';
+import { useRef, useEffect, useState, useCallback } from 'preact/hooks';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useShopperStore } from '../../store';
+import { Product } from '../../types';
+import { useChatAnswer, MetaPayload } from '../../hooks/useChatAnswer';
+import { extractProducts } from '../../utils/productExtractor';
+import { EditorialPanel } from './editorial/EditorialPanel';
+import { MessageBubble, StreamingBubble, TypingIndicator } from './messages/MessageThread';
+import { ProductSuggestionCard } from './products/ProductSuggestionCard';
+import { ChatInputBar } from './input/ChatInputBar';
 
 export function AssistantExperience() {
   const { messages, addMessage, isLoading, setIsLoading, jwt, setJwt } = useShopperStore();
-  const [input, setInput] = useState("");
+  const shouldReduceMotion = useReducedMotion();
+  const [input, setInput] = useState('');
   const [question, setQuestion] = useState<string | null>(null);
-  const [streamingText, setStreamingText] = useState("");
-  const [productsTitle, setProductsTitle] = useState("Nos suggestions");
-  const [productsSubtitle, setProductsSubtitle] = useState("");
+  const [streamingText, setStreamingText] = useState('');
+  const [productsTitle, setProductsTitle] = useState('Nos suggestions');
+  const [productsSubtitle, setProductsSubtitle] = useState('');
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [panelVisible, setPanelVisible] = useState(true);
   const [panelKey, setPanelKey] = useState(0);
@@ -27,63 +29,63 @@ export function AssistantExperience() {
       setProductsTitle(title);
       setProductsSubtitle(subtitle);
       setDisplayedProducts(products);
-      setPanelKey((k) => k + 1);
+      setPanelKey(k => k + 1);
       setPanelVisible(true);
     }, 280);
   }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading, streamingText]);
 
-  useChatAnswer(question, jwt, (newJwt) => setJwt(newJwt), {
-    onToken: (token) => setStreamingText((prev) => prev + token),
+  useChatAnswer(question, jwt, newJwt => setJwt(newJwt), {
+    onToken: token => setStreamingText(prev => prev + token),
     onMeta: (meta: MetaPayload) => {
       const products = extractProducts(meta.tool_results ?? []);
       if (products.length > 0) {
         updatePanel(
-          "Suggestions personnalisées",
-          `${products.length} produit${products.length > 1 ? "s" : ""} recommandé${products.length > 1 ? "s" : ""}`,
+          'Suggestions personnalisées',
+          `${products.length} produit${products.length > 1 ? 's' : ''} recommandé${products.length > 1 ? 's' : ''}`,
           products
         );
       }
     },
-    onComplete: (fullText) => {
+    onComplete: fullText => {
       addMessage({
         id: Date.now().toString(),
-        role: "assistant",
+        role: 'assistant',
         content: fullText,
-        timestamp: new Date(),
+        timestamp: new Date()
       });
-      setStreamingText("");
+      setStreamingText('');
       setIsLoading(false);
       setQuestion(null);
     },
-    onError: (msg) => {
+    onError: msg => {
       addMessage({
         id: Date.now().toString(),
-        role: "assistant",
+        role: 'assistant',
         content: `❌ Une erreur est survenue\u00a0: ${msg}`,
-        timestamp: new Date(),
+        timestamp: new Date()
       });
-      setStreamingText("");
+      setStreamingText('');
       setIsLoading(false);
       setQuestion(null);
-    },
+    }
   });
 
   const send = (text?: string) => {
     const t = (text ?? input).trim();
     if (!t || isLoading) return;
-    addMessage({ id: Date.now().toString(), role: "user", content: t, timestamp: new Date() });
-    setInput("");
-    setStreamingText("");
+    addMessage({ id: Date.now().toString(), role: 'user', content: t, timestamp: new Date() });
+    setInput('');
+    setStreamingText('');
     setIsLoading(true);
     setQuestion(t);
   };
 
   const handleKey = (e: KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       send();
     }
@@ -93,24 +95,41 @@ export function AssistantExperience() {
   const isWaiting = isLoading && streamingText.length === 0;
 
   return (
-    <div class="flex flex-col h-full min-h-0 font-['Montserrat'] text-[#1A1A2E] bg-[#FAF9F7]">
+    <div class="flex flex-col h-full min-h-0 text-[#1A1A2E] bg-[#FAF9F7]">
       <div class="grid flex-1 grid-rows-2 md:grid-rows-1 md:grid-cols-[38%_1fr] overflow-hidden min-h-0">
         <div class="row-start-1 md:row-start-auto md:col-start-1 flex flex-col bg-white border-b md:border-b-0 md:border-r border-[#E8ECF0] min-h-0">
           <div class="flex-1 overflow-y-auto min-h-0 flex flex-col [scroll-behavior:smooth] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-[#d1d5db]">
-            <div class="shrink-0 px-5 py-6 md:px-8 md:py-9">
-              <p class="m-0 font-normal italic text-[#8B7A5A] text-base md:text-lg leading-[1.45]">
-                Bonjour et bienvenue, je suis{" "}
-                <span class="font-['Satisfy'] font-normal text-[#8B7A5A] tracking-[0.02em]">Cathia</span>{" "}
-                votre agent intelligent traiteur. Que puis-je faire pour vous&nbsp;?
+            <motion.div
+              class="shrink-0 px-5 py-6 md:px-8 md:py-9"
+              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12, scale: 0.995 }}
+              animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+              transition={
+                shouldReduceMotion
+                  ? undefined
+                  : {
+                      duration: 0.75,
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: 0.08
+                    }
+              }
+            >
+              <p class="m-0 font-normal text-[#C7B287] text-base md:text-lg leading-[1.45]">
+                Bonjour et bienvenue, je suis{' '}
+                <span class="font-['Satisfy'] font-normal text-[#C7B287] text-base md:text-lg">Cathia</span> votre agent
+                intelligent traiteur. Que puis-je faire pour vous&nbsp;?
               </p>
-            </div>
+            </motion.div>
 
             <div class="shrink-0 px-3.5 pb-3 md:px-5 md:pb-4 flex flex-col gap-0.5">
               {messages.map((m, i) => (
                 <MessageBubble
                   key={m.id}
                   message={m}
-                  showSender={m.role === "assistant" && (i === 0 || messages[i - 1].role !== "assistant")}
+                  showSender={
+                    m.role === 'assistant' && (i === 0 || messages[i - 1].role !== 'assistant')
+                  }
+                  fadeInOnMount={i === 0 && m.role === 'assistant'}
+                  fadeInDelay={i === 0 && m.role === 'assistant' ? 0.22 : 0}
                 />
               ))}
               {isWaiting && <TypingIndicator />}
@@ -135,16 +154,23 @@ export function AssistantExperience() {
               <div class="py-3 px-4 md:py-3.5 md:px-6 bg-white border-b border-[#E8ECF0] flex items-center justify-between shrink-0 gap-3">
                 <div>
                   <div class="text-sm md:text-[15px] font-bold">{productsTitle}</div>
-                  {productsSubtitle && <div class="text-[11px] md:text-xs text-[#6B7280] mt-0.5">{productsSubtitle}</div>}
+                  {productsSubtitle && (
+                    <div class="text-[11px] md:text-xs text-[#6B7280] mt-0.5">
+                      {productsSubtitle}
+                    </div>
+                  )}
                 </div>
-                <div class="bg-[#8B7A5A] text-white text-[11px] md:text-xs font-semibold px-2.5 py-1 md:px-3 rounded-[20px] shrink-0">
-                  {displayedProducts.length} produit{displayedProducts.length > 1 ? "s" : ""}
+                <div class="bg-[#C7B287] text-white text-[11px] md:text-xs font-semibold px-2.5 py-1 md:px-3 rounded-[20px] shrink-0">
+                  {displayedProducts.length} produit{displayedProducts.length > 1 ? 's' : ''}
                 </div>
               </div>
               <div class="flex-1 overflow-y-auto py-4 px-4 md:py-5 md:px-6 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-[#d1d5db]">
-                <div key={panelKey} class={`transition-all duration-300 ${panelVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}>
+                <div
+                  key={panelKey}
+                  class={`transition-all duration-300 ${panelVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
+                >
                   <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3 md:gap-4">
-                    {displayedProducts.map((p) => (
+                    {displayedProducts.map(p => (
                       <ProductSuggestionCard key={p.id} product={p} />
                     ))}
                   </div>
@@ -152,7 +178,7 @@ export function AssistantExperience() {
               </div>
             </>
           ) : (
-            <EditorialPanel onSelect={(q) => send(q)} />
+            <EditorialPanel onSelect={q => send(q)} />
           )}
         </div>
       </div>

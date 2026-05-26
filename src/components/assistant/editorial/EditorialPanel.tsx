@@ -1,5 +1,6 @@
 import { h } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
+import EmblaCarousel, { EmblaCarouselType } from "embla-carousel";
 import { EDITORIAL_TILES, HERO_SLIDES } from "./data";
 
 interface Props {
@@ -7,25 +8,68 @@ interface Props {
 }
 
 function HeroCarousel({ onSelect }: Props) {
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const emblaApiRef = useRef<EmblaCarouselType | null>(null);
   const [idx, setIdx] = useState(0);
-  const slide = HERO_SLIDES[idx];
+
+  useEffect(() => {
+    if (!viewportRef.current) return;
+
+    const embla = EmblaCarousel(viewportRef.current, {
+      loop: true,
+    });
+    emblaApiRef.current = embla;
+
+    const syncSelectedSlide = () => {
+      setIdx(embla.selectedScrollSnap());
+    };
+
+    syncSelectedSlide();
+    embla.on("select", syncSelectedSlide);
+    embla.on("reInit", syncSelectedSlide);
+
+    return () => {
+      embla.off("select", syncSelectedSlide);
+      embla.off("reInit", syncSelectedSlide);
+      embla.destroy();
+      emblaApiRef.current = null;
+    };
+  }, []);
 
   const prev = (e: MouseEvent) => {
     e.stopPropagation();
-    setIdx((i) => (i - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+    emblaApiRef.current?.scrollPrev();
   };
 
   const next = (e: MouseEvent) => {
     e.stopPropagation();
-    setIdx((i) => (i + 1) % HERO_SLIDES.length);
+    emblaApiRef.current?.scrollNext();
   };
 
   return (
-    <div class="relative basis-1/2 md:basis-[55%] overflow-hidden cursor-pointer group" onClick={() => onSelect(slide.query)}>
-      <img class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" src={slide.img} alt="" />
-      <div class="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,.08)] to-[rgba(0,0,0,.55)]" />
-      <div class="absolute bottom-0 left-0 right-0 px-4 py-4 md:px-7 md:py-6">
-        <p class="m-0 font-['Satisfy'] font-normal text-[24px] md:text-[clamp(26px,3vw,40px)] text-white leading-[1.2] md:leading-[1.25] whitespace-pre-line [text-shadow:0_2px_12px_rgba(0,0,0,.3)]">{slide.title}</p>
+    <div class="relative basis-1/2 md:basis-[55%] overflow-hidden">
+      <div class="h-full overflow-hidden" ref={viewportRef}>
+        <div class="flex h-full">
+          {HERO_SLIDES.map((slide, i) => (
+            <div
+              key={i}
+              class="relative h-full min-w-0 flex-[0_0_100%] cursor-pointer group"
+              onClick={() => onSelect(slide.query)}
+            >
+              <img
+                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+                src={slide.img}
+                alt=""
+              />
+              <div class="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,.08)] to-[rgba(0,0,0,.55)]" />
+              <div class="absolute bottom-0 left-0 right-0 px-4 py-4 md:px-7 md:py-6">
+                <p class="m-0 font-['Satisfy'] font-normal text-[24px] md:text-[clamp(26px,3vw,40px)] text-white leading-[1.2] md:leading-[1.25] whitespace-pre-line [text-shadow:0_2px_12px_rgba(0,0,0,.3)]">
+                  {slide.title}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       <button class="absolute top-1/2 -translate-y-1/2 left-2.5 md:left-3.5 w-8 h-8 md:w-9 md:h-9 rounded-full border-0 bg-white text-[#333] text-[18px] md:text-[20px] leading-none flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,.2)] z-[2] cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,.28)]" onClick={prev}>‹</button>
       <button class="absolute top-1/2 -translate-y-1/2 right-2.5 md:right-3.5 w-8 h-8 md:w-9 md:h-9 rounded-full border-0 bg-white text-[#333] text-[18px] md:text-[20px] leading-none flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,.2)] z-[2] cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,.28)]" onClick={next}>›</button>
@@ -34,7 +78,10 @@ function HeroCarousel({ onSelect }: Props) {
           <button
             key={i}
             class={`w-[7px] h-[7px] rounded-full border-0 p-0 cursor-pointer transition-all duration-200 ${i === idx ? "bg-white scale-[1.3]" : "bg-[rgba(255,255,255,.5)]"}`}
-            onClick={(e) => { (e as MouseEvent).stopPropagation(); setIdx(i); }}
+            onClick={(e) => {
+              (e as MouseEvent).stopPropagation();
+              emblaApiRef.current?.scrollTo(i);
+            }}
           />
         ))}
       </div>

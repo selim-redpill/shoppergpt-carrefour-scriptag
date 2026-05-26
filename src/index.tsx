@@ -5,7 +5,6 @@ import { AssistantExperience } from "./components/assistant/AssistantExperience"
 import { initDOMEventListeners } from "./events";
 import styles from "./styles/tailwind.css";
 import satisfyWoff2 from "./assets/fonts/Satisfy-Regular.woff2";
-import montserratWoff2 from "./assets/fonts/Montserrat-Variable.woff2";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -22,13 +21,6 @@ function injectDocumentFonts() {
       src: url("${satisfyWoff2}") format("woff2");
       font-style: normal;
       font-weight: 400;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: "Montserrat";
-      src: url("${montserratWoff2}") format("woff2");
-      font-style: normal;
-      font-weight: 100 900;
       font-display: swap;
     }
   `;

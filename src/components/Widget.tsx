@@ -51,7 +51,7 @@ export function Widget() {
   const { isOpen, toggleOpen, activeTab } = useShopperStore();
 
   return (
-    <div class="fixed bottom-6 right-6 z-[9999] font-sans">
+    <div class="fixed bottom-6 right-6 z-[9999]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
