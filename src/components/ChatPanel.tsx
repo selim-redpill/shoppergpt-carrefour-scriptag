@@ -33,10 +33,7 @@ function StreamingBubble({ text }: { text: string }) {
       <div class="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1">
         <ReactMarkdown>{text}</ReactMarkdown>
       </div>
-      <span
-        class="inline-block w-0.5 h-3.5 bg-carrefour-blue rounded-sm ml-0.5 align-middle"
-        style={{ animation: 'sgpt-blink .8s step-end infinite' }}
-      />
+      <span class="inline-block w-0.5 h-3.5 bg-carrefour-blue rounded-sm ml-0.5 align-middle animate-pulse" />
     </div>
   );
 }

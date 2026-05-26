@@ -1,41 +1,63 @@
 import { h, render } from "preact";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Widget } from "./components/Widget";
-import { FullPageApp } from "./components/FullPageApp";
+import { AssistantExperience } from "./components/assistant/AssistantExperience";
 import { initDOMEventListeners } from "./events";
 import styles from "./styles/tailwind.css";
+import satisfyWoff2 from "./assets/fonts/Satisfy-Regular.woff2";
+import montserratWoff2 from "./assets/fonts/Montserrat-Variable.woff2";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
+// @font-face must live in document.head — Shadow DOM doesn't resolve it
+function injectDocumentFonts() {
+  if (document.getElementById("sgpt-fonts")) return;
+  const style = document.createElement("style");
+  style.id = "sgpt-fonts";
+  style.textContent = `
+    @font-face {
+      font-family: "Satisfy";
+      src: url("${satisfyWoff2}") format("woff2");
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Montserrat";
+      src: url("${montserratWoff2}") format("woff2");
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 function injectStyles(shadow: ShadowRoot) {
   const styleEl = document.createElement("style");
   styleEl.textContent = styles as unknown as string;
   shadow.appendChild(styleEl);
-
-  const fontLink = document.createElement("link");
-  fontLink.rel = "stylesheet";
-  fontLink.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
-  shadow.appendChild(fontLink);
 }
 
 function bootstrap() {
+  injectDocumentFonts();
   initDOMEventListeners();
 
-  // Full-page mode: host page provides a <div id="shoppergpt-chat"> mount point
-  const fullPageMount = document.getElementById("shoppergpt-chat");
-  if (fullPageMount) {
-    const shadow = fullPageMount.attachShadow({ mode: "open" });
+  // Embedded chat mode: host page provides a <div id="shoppergpt-chat"> mount point
+  const embeddedChatMount = document.getElementById("shoppergpt-chat");
+  if (embeddedChatMount) {
+    const shadow = embeddedChatMount.attachShadow({ mode: "open" });
     injectStyles(shadow);
     const mountPoint = document.createElement("div");
     mountPoint.style.cssText = "height:100%;display:flex;flex-direction:column;";
     shadow.appendChild(mountPoint);
     render(
-      h(QueryClientProvider, { client: queryClient }, h(FullPageApp, null)),
+      h(QueryClientProvider, { client: queryClient }, h(AssistantExperience, null)),
       mountPoint
     );
-    console.log("[ShopperGPT] Full-page mode mounted");
+    console.log("[ShopperGPT] Embedded chat mode mounted");
     return;
   }
 

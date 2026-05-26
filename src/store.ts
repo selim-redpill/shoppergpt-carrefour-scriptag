@@ -35,9 +35,10 @@ export const useShopperStore = create<ShopperState>((set, get) => ({
   store: mockStore,
   messages: [
     {
-      id: "0",
+      id: "w1",
       role: "assistant" as const,
-      content: "Bonjour et bienvenue chez **Carrefour Traiteur** ! Je suis votre assistant personnel pour vous aider à mettre les petits plats dans les grands.\n\nPour vous aider, peut-être pouvez-vous m'en dire un peu plus sur vos envies ?",
+      content:
+        "Je suis là pour vous aider à composer le menu parfait pour votre événement ✨\n\nPour commencer... quel est l'heureux événement que vous souhaitez célébrer ?",
       timestamp: new Date(),
     },
   ],

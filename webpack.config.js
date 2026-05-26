@@ -33,6 +33,10 @@ module.exports = (env, argv) => {
           type: "asset/inline", // base64-inlines the image into the bundle — no separate file needed
         },
         {
+          test: /\.(woff2?|ttf|otf|eot)$/i,
+          type: "asset/inline", // inline local fonts so the widget is self-contained
+        },
+        {
           // Export CSS as a plain string so we can inject it into the Shadow DOM
           test: /\.css$/,
           use: [

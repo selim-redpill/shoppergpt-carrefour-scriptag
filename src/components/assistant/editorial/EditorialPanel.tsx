@@ -1,0 +1,72 @@
+import { h } from "preact";
+import { useState } from "preact/hooks";
+import { EDITORIAL_TILES, HERO_SLIDES } from "./data";
+
+interface Props {
+  onSelect: (query: string) => void;
+}
+
+function HeroCarousel({ onSelect }: Props) {
+  const [idx, setIdx] = useState(0);
+  const slide = HERO_SLIDES[idx];
+
+  const prev = (e: MouseEvent) => {
+    e.stopPropagation();
+    setIdx((i) => (i - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  };
+
+  const next = (e: MouseEvent) => {
+    e.stopPropagation();
+    setIdx((i) => (i + 1) % HERO_SLIDES.length);
+  };
+
+  return (
+    <div class="relative basis-1/2 md:basis-[55%] overflow-hidden cursor-pointer group" onClick={() => onSelect(slide.query)}>
+      <img class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" src={slide.img} alt="" />
+      <div class="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,.08)] to-[rgba(0,0,0,.55)]" />
+      <div class="absolute bottom-0 left-0 right-0 px-4 py-4 md:px-7 md:py-6">
+        <p class="m-0 font-['Satisfy'] font-normal text-[24px] md:text-[clamp(26px,3vw,40px)] text-white leading-[1.2] md:leading-[1.25] whitespace-pre-line [text-shadow:0_2px_12px_rgba(0,0,0,.3)]">{slide.title}</p>
+      </div>
+      <button class="absolute top-1/2 -translate-y-1/2 left-2.5 md:left-3.5 w-8 h-8 md:w-9 md:h-9 rounded-full border-0 bg-white text-[#333] text-[18px] md:text-[20px] leading-none flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,.2)] z-[2] cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,.28)]" onClick={prev}>‹</button>
+      <button class="absolute top-1/2 -translate-y-1/2 right-2.5 md:right-3.5 w-8 h-8 md:w-9 md:h-9 rounded-full border-0 bg-white text-[#333] text-[18px] md:text-[20px] leading-none flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,.2)] z-[2] cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,.28)]" onClick={next}>›</button>
+      <div class="absolute bottom-2.5 md:bottom-3.5 left-1/2 -translate-x-1/2 flex gap-1.5 z-[2]">
+        {HERO_SLIDES.map((_, i) => (
+          <button
+            key={i}
+            class={`w-[7px] h-[7px] rounded-full border-0 p-0 cursor-pointer transition-all duration-200 ${i === idx ? "bg-white scale-[1.3]" : "bg-[rgba(255,255,255,.5)]"}`}
+            onClick={(e) => { (e as MouseEvent).stopPropagation(); setIdx(i); }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EditorialGrid({ onSelect }: Props) {
+  return (
+    <div class="flex-1 grid grid-cols-2 grid-rows-2 overflow-hidden">
+      {EDITORIAL_TILES.map((tile, i) => (
+        <div key={i} class="relative overflow-hidden cursor-pointer border border-[rgba(255,255,255,.15)] group" onClick={() => onSelect(tile.query)}>
+          <img class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" src={tile.img} alt="" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,.05)] to-[rgba(0,0,0,.6)]" />
+          <div class="absolute bottom-0 left-0 right-0 px-2.5 py-2 md:px-3.5 md:py-3 flex flex-col gap-0.5">
+            {tile.badge && <span class="text-[8px] md:text-[9px] font-bold tracking-[0.08em] uppercase text-[rgba(255,255,255,.85)]">{tile.badge}</span>}
+            {tile.price && <span class="text-[14px] md:text-[15px] font-bold text-white leading-none">{tile.price}</span>}
+            {tile.title && (
+              <p class="m-0 text-xs md:text-[13px] font-semibold text-white leading-[1.3] whitespace-pre-line">{tile.title}</p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function EditorialPanel({ onSelect }: Props) {
+  return (
+    <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+      <HeroCarousel onSelect={onSelect} />
+      <EditorialGrid onSelect={onSelect} />
+    </div>
+  );
+}
