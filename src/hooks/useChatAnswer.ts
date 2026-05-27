@@ -5,6 +5,9 @@ export interface MetaPayload {
   tool_calls?: Array<{ name: string; params: Record<string, unknown> }>;
   tool_results?: unknown[];
   message_id?: string;
+  tool_metadata?: {
+    event_requirements?: Record<string, unknown>;
+  };
 }
 
 export interface ChatAnswerCallbacks {

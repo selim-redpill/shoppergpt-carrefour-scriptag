@@ -1,6 +1,5 @@
 import { h, render } from "preact";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Widget } from "./components/Widget";
 import { AssistantExperience } from "./components/assistant/AssistantExperience";
 import { initDOMEventListeners } from "./events";
 import styles from "./styles/tailwind.css";
@@ -53,19 +52,7 @@ function bootstrap() {
     return;
   }
 
-  // Floating widget mode: inject FAB into page
-  const host = document.createElement("div");
-  host.id = "shoppergpt-root";
-  document.body.appendChild(host);
-  const shadow = host.attachShadow({ mode: "open" });
-  injectStyles(shadow);
-  const mountPoint = document.createElement("div");
-  shadow.appendChild(mountPoint);
-  render(
-    h(QueryClientProvider, { client: queryClient }, h(Widget, null)),
-    mountPoint
-  );
-  console.log("[ShopperGPT] Floating widget mounted");
+  console.warn("[ShopperGPT] No #shoppergpt-chat mount found; skipping mount.");
 }
 
 if (document.readyState === "loading") {

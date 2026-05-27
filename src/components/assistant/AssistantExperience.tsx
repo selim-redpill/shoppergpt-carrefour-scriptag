@@ -2,13 +2,71 @@ import { h } from 'preact';
 import { useRef, useEffect, useState, useCallback } from 'preact/hooks';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useShopperStore } from '../../store';
-import { Product } from '../../types';
+import { EventRequirements, Product } from '../../types';
 import { useChatAnswer, MetaPayload } from '../../hooks/useChatAnswer';
 import { extractProducts } from '../../utils/productExtractor';
 import { EditorialPanel } from './editorial/EditorialPanel';
 import { MessageBubble, StreamingBubble, TypingIndicator } from './messages/MessageThread';
 import { ProductSuggestionCard } from './products/ProductSuggestionCard';
 import { ChatInputBar } from './input/ChatInputBar';
+import { EventRequirementsPanel } from './event/EventRequirementsPanel';
+
+function parseString(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : undefined;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return `${value}`;
+  }
+  return undefined;
+}
+
+function parseNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().replace(',', '.');
+    if (!normalized) return undefined;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function extractEventRequirements(meta: MetaPayload): Partial<EventRequirements> {
+  const raw = meta.tool_metadata?.event_requirements;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return {};
+  }
+
+  const source = raw as Record<string, unknown>;
+  const next: Partial<EventRequirements> = {};
+
+  if ('event_type' in source) {
+    const eventType = parseString(source.event_type);
+    if (eventType !== undefined) next.event_type = eventType;
+  }
+  if ('event_date' in source) {
+    const eventDate = parseString(source.event_date);
+    if (eventDate !== undefined) next.event_date = eventDate;
+  }
+  if ('guests_adults' in source) {
+    const adults = parseNumber(source.guests_adults);
+    if (adults !== undefined) next.guests_adults = adults;
+  }
+  if ('guests_kids' in source) {
+    const kids = parseNumber(source.guests_kids);
+    if (kids !== undefined) next.guests_kids = kids;
+  }
+  if ('budget' in source) {
+    const budget = parseNumber(source.budget);
+    if (budget !== undefined) next.budget = budget;
+  }
+
+  return next;
+}
 
 export function AssistantExperience() {
   const { messages, addMessage, isLoading, setIsLoading, jwt, setJwt } = useShopperStore();
@@ -21,6 +79,8 @@ export function AssistantExperience() {
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [panelVisible, setPanelVisible] = useState(true);
   const [panelKey, setPanelKey] = useState(0);
+  const [eventRequirements, setEventRequirements] = useState<EventRequirements>({});
+  const [eventScreenEnabled, setEventScreenEnabled] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const updatePanel = useCallback((title: string, subtitle: string, products: Product[]) => {
@@ -41,6 +101,12 @@ export function AssistantExperience() {
   useChatAnswer(question, jwt, newJwt => setJwt(newJwt), {
     onToken: token => setStreamingText(prev => prev + token),
     onMeta: (meta: MetaPayload) => {
+      const incomingRequirements = extractEventRequirements(meta);
+      if (Object.keys(incomingRequirements).length > 0) {
+        setEventRequirements(prev => ({ ...prev, ...incomingRequirements }));
+        setEventScreenEnabled(true);
+      }
+
       const products = extractProducts(meta.tool_results ?? []);
       if (products.length > 0) {
         updatePanel(
@@ -149,7 +215,9 @@ export function AssistantExperience() {
         </div>
 
         <div class="row-start-2 md:row-start-auto md:col-start-2 flex flex-col overflow-hidden min-h-0">
-          {displayedProducts.length > 0 ? (
+          {eventScreenEnabled ? (
+            <EventRequirementsPanel requirements={eventRequirements} />
+          ) : displayedProducts.length > 0 ? (
             <>
               <div class="py-3 px-4 md:py-3.5 md:px-6 bg-white border-b border-[#E8ECF0] flex items-center justify-between shrink-0 gap-3">
                 <div>

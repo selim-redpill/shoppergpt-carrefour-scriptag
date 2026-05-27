@@ -39,3 +39,11 @@ export interface CartUpdatedEvent {
 export interface ChangeShopEvent {
   store_id: string;
 }
+
+export interface EventRequirements {
+  event_type?: string;
+  event_date?: string;
+  guests_adults?: number;
+  guests_kids?: number;
+  budget?: number;
+}
