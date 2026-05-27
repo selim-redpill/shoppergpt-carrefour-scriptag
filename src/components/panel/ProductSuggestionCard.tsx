@@ -1,7 +1,7 @@
 import { h } from 'preact';
-import { useShopperStore } from '../../../store';
-import { Product } from '../../../types';
-import { dispatchCartUpdated } from '../../../events';
+import { useShopperStore } from '../../store';
+import { Product } from '../../types';
+import { dispatchCartUpdated } from '../../events';
 
 interface Props {
   product: Product;
@@ -79,7 +79,7 @@ export function ProductSuggestionCard({ product }: Props) {
           </div>
           <button
             onClick={toggle}
-            class={`px-3 py-1.5 md:px-3.5 md:py-[7px] rounded-[10px] border-0 text-[11px] md:text-[12px] font-semibold cursor-pointer transition-all duration-150 ${inCart ? 'bg-[#dcfce7] text-[#16a34a] cursor-default' : 'bg-[#E4002B] text-white hover:bg-[#c4001f]'}`}
+            class={`px-3 py-1.5 md:px-3.5 md:py-[7px] rounded-[10px] border-0 text-[11px] md:text-[12px] font-semibold cursor-pointer transition-all duration-150 ${inCart ? 'bg-[#dcfce7] text-[#16a34a] hover:bg-[#bbf7d0]' : 'bg-[#E4002B] text-white hover:bg-[#c4001f]'}`}
           >
             {inCart ? '✓ Ajouté' : 'Ajouter'}
           </button>

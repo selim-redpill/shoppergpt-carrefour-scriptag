@@ -14,10 +14,9 @@ export interface EventTile {
 export interface ProductTile {
   img: string;
   price: string;
-  name: string,
+  name: string;
   query: string;
 }
-
 
 export const HERO_SLIDES: HeroSlide[] = [
   {
@@ -52,7 +51,7 @@ export const EVENTS_TILES: EventTile[] = [
   },
 ];
 
-export const PRODUCT_TILES:  ProductTile[] = [
+export const PRODUCT_TILES: ProductTile[] = [
   {
     img: "https://images.unsplash.com/photo-1671180401158-8d9d060d4966?q=80&w=1141&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     price: "39,99 €",
@@ -65,4 +64,4 @@ export const PRODUCT_TILES:  ProductTile[] = [
     name: "8 mini burgers",
     query: "Montre moi les mini burgers disponible"
   }
-]
+];

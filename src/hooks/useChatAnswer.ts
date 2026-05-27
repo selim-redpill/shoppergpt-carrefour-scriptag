@@ -108,10 +108,6 @@ export function useChatAnswer(
         const decoder = new TextDecoder();
         const parser = new SSEParser();
 
-        parser.feed("", (event, data) => {
-          // initial no-op to satisfy TypeScript (parser is stateless at construction)
-        });
-
         while (!cancelled) {
           const { done, value } = await reader.read();
           if (done) break;

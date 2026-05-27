@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import EmblaCarousel, { EmblaCarouselType } from "embla-carousel";
-import { PRODUCT_TILES, EVENTS_TILES, HERO_SLIDES } from "./data";
+import { PRODUCT_TILES, EVENTS_TILES, HERO_SLIDES } from "./editorialData";
 
 interface Props {
   onSelect: (query: string) => void;
@@ -51,15 +51,10 @@ function HeroCarousel({ onSelect }: Props) {
   useEffect(() => {
     if (!viewportRef.current) return;
 
-    const embla = EmblaCarousel(viewportRef.current, {
-      loop: true,
-    });
+    const embla = EmblaCarousel(viewportRef.current, { loop: true });
     emblaApiRef.current = embla;
 
-    const syncSelectedSlide = () => {
-      setIdx(embla.selectedScrollSnap());
-    };
-
+    const syncSelectedSlide = () => setIdx(embla.selectedScrollSnap());
     syncSelectedSlide();
     embla.on("select", syncSelectedSlide);
     embla.on("reInit", syncSelectedSlide);
@@ -72,15 +67,8 @@ function HeroCarousel({ onSelect }: Props) {
     };
   }, []);
 
-  const prev = (e: MouseEvent) => {
-    e.stopPropagation();
-    emblaApiRef.current?.scrollPrev();
-  };
-
-  const next = (e: MouseEvent) => {
-    e.stopPropagation();
-    emblaApiRef.current?.scrollNext();
-  };
+  const prev = (e: MouseEvent) => { e.stopPropagation(); emblaApiRef.current?.scrollPrev(); };
+  const next = (e: MouseEvent) => { e.stopPropagation(); emblaApiRef.current?.scrollNext(); };
 
   return (
     <div class="relative basis-1/2 md:basis-[55%] overflow-hidden">
@@ -114,10 +102,7 @@ function HeroCarousel({ onSelect }: Props) {
           <button
             key={i}
             class={`w-[7px] h-[7px] rounded-full border-0 p-0 cursor-pointer transition-all duration-200 ${i === idx ? "bg-white scale-[1.3]" : "bg-[rgba(255,255,255,.5)]"}`}
-            onClick={(e) => {
-              (e as MouseEvent).stopPropagation();
-              emblaApiRef.current?.scrollTo(i);
-            }}
+            onClick={(e) => { (e as MouseEvent).stopPropagation(); emblaApiRef.current?.scrollTo(i); }}
           />
         ))}
       </div>
@@ -132,10 +117,7 @@ function EditorialGrid({ onSelect }: Props) {
   return (
     <div class="flex-1 grid grid-cols-2 gap-3 overflow-hidden p-3">
       <div class="grid grid-rows-2 gap-2.5 min-h-0">
-        {leftEvent && (
-          <EventEditorialTile tile={leftEvent} onSelect={onSelect} />
-        )}
-
+        {leftEvent && <EventEditorialTile tile={leftEvent} onSelect={onSelect} />}
         <div class="grid grid-cols-2 gap-2.5 min-h-0">
           {PRODUCT_TILES.slice(0, 2).map((product, i) => (
             <div
@@ -148,7 +130,7 @@ function EditorialGrid({ onSelect }: Props) {
                 src={product.img}
                 alt=""
                 loading="lazy"
-              /> 
+              />
               <div class="absolute inset-0 bg-gradient-to-b from-[rgba(0,0,0,.14)] via-[rgba(0,0,0,.3)] to-[rgba(0,0,0,.7)]" />
               <div class="absolute bottom-0 left-0 right-0 px-2 py-1.5 md:px-2.5 md:py-2 flex flex-col">
                 <span class="text-[11px] md:text-[15px] font-400 text-white leading-none [text-shadow:0_2px_8px_rgba(0,0,0,.35)]">
@@ -162,10 +144,7 @@ function EditorialGrid({ onSelect }: Props) {
           ))}
         </div>
       </div>
-
-      {rightEvent && (
-        <EventEditorialTile tile={rightEvent} onSelect={onSelect} />
-      )}
+      {rightEvent && <EventEditorialTile tile={rightEvent} onSelect={onSelect} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { h } from 'preact';
-import { EventRequirements } from '../../../types';
-import { getCurrencyParts } from '../../../utils/currency';
+import { EventRequirements } from '../../types';
+import { getCurrencyParts } from '../../utils/currency';
 
 interface Props {
   requirements: EventRequirements;
@@ -86,9 +86,8 @@ const CATEGORIES = [
 export function EventRequirementsPanel({ requirements }: Props) {
   const adults = requirements.guests_adults;
   const kids = requirements.guests_kids;
-  const totalGuests = (adults ?? 0) + (kids ?? 0);
-  const costTotal = 0;
-  const pricePerPerson = totalGuests > 0 ? costTotal / totalGuests : undefined;
+  const costTotal: number | undefined = undefined;
+  const pricePerPerson: number | undefined = undefined;
 
   return (
     <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -119,16 +118,6 @@ export function EventRequirementsPanel({ requirements }: Props) {
               </span>
             </button>
           ))}
-          <button class="shrink-0 flex flex-col items-center justify-center gap-1 py-3 px-3 border-0 bg-transparent text-[#C9C0B0] cursor-not-allowed">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="22" height="22">
-              <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 01-8 0" />
-            </svg>
-            <span class="text-[9px] md:text-[10px] uppercase tracking-wide font-semibold leading-none text-center max-w-[50px]">
-              Liste courses
-            </span>
-          </button>
         </div>
       </div>
 

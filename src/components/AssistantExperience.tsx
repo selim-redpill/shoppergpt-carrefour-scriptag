@@ -1,15 +1,17 @@
 import { h } from 'preact';
 import { useRef, useEffect, useState, useCallback } from 'preact/hooks';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useShopperStore } from '../../store';
-import { EventRequirements, Product } from '../../types';
-import { useChatAnswer, MetaPayload } from '../../hooks/useChatAnswer';
-import { extractProducts } from '../../utils/productExtractor';
-import { EditorialPanel } from './editorial/EditorialPanel';
-import { MessageBubble, StreamingBubble, TypingIndicator } from './messages/MessageThread';
-import { ProductSuggestionCard } from './products/ProductSuggestionCard';
-import { ChatInputBar } from './input/ChatInputBar';
-import { EventRequirementsPanel } from './event/EventRequirementsPanel';
+import { useShopperStore } from '../store';
+import { EventRequirements, Product } from '../types';
+import { useChatAnswer, MetaPayload } from '../hooks/useChatAnswer';
+import { extractProducts } from '../utils/productExtractor';
+import { EditorialPanel } from './panel/EditorialPanel';
+import { MessageBubble } from './chat/MessageBubble';
+import { TypingIndicator } from './chat/TypingIndicator';
+import { StreamingBubble } from './chat/StreamingBubble';
+import { ProductSuggestionCard } from './panel/ProductSuggestionCard';
+import { ChatInputBar } from './chat/ChatInputBar';
+import { EventRequirementsPanel } from './panel/EventRequirementsPanel';
 
 function parseString(value: unknown): string | undefined {
   if (typeof value === 'string') {
@@ -131,7 +133,7 @@ export function AssistantExperience() {
       addMessage({
         id: Date.now().toString(),
         role: 'assistant',
-        content: `❌ Une erreur est survenue\u00a0: ${msg}`,
+        content: `❌ Une erreur est survenue : ${msg}`,
         timestamp: new Date()
       });
       setStreamingText('');
@@ -140,7 +142,7 @@ export function AssistantExperience() {
     }
   });
 
-  const send = (text?: string) => {
+  const send = useCallback((text?: string) => {
     const t = (text ?? input).trim();
     if (!t || isLoading) return;
     addMessage({ id: Date.now().toString(), role: 'user', content: t, timestamp: new Date() });
@@ -148,14 +150,14 @@ export function AssistantExperience() {
     setStreamingText('');
     setIsLoading(true);
     setQuestion(t);
-  };
+  }, [input, isLoading, addMessage, setIsLoading]);
 
-  const handleKey = (e: KeyboardEvent) => {
+  const handleKey = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       send();
     }
-  };
+  }, [send]);
 
   const isStreaming = isLoading && streamingText.length > 0;
   const isWaiting = isLoading && streamingText.length === 0;
@@ -172,11 +174,7 @@ export function AssistantExperience() {
               transition={
                 shouldReduceMotion
                   ? undefined
-                  : {
-                      duration: 0.42,
-                      ease: [0.16, 1, 0.3, 1],
-                      delay: 0.02
-                    }
+                  : { duration: 0.42, ease: [0.16, 1, 0.3, 1], delay: 0.02 }
               }
             >
               <p class="m-0 font-normal text-[#C7B287] text-base md:text-lg leading-[1.45]">
