@@ -120,23 +120,35 @@ export function AssistantExperience() {
 
       const products = extractProducts(meta.tool_results ?? []);
       if (products.length > 0) {
-        // Phase 3: group products by menu_step and accumulate across multiple tool calls
         const withStep = products.filter(p => p.menu_step);
         const withoutStep = products.filter(p => !p.menu_step);
 
         if (withStep.length > 0) {
-          setProductsByStep(prev => {
-            const next = { ...prev };
-            for (const p of withStep) {
-              const step = p.menu_step!;
-              const existing = next[step] ?? [];
-              // Deduplicate by id
-              if (!existing.some(e => e.id === p.id)) {
-                next[step] = [...existing, p];
-              }
+          // Group incoming products by step, then replace each step entirely so
+          // re-runs with updated preferences (halal, sans poisson, …) clear stale items.
+          const incomingByStep: Record<string, typeof withStep> = {};
+          for (const p of withStep) {
+            const step = p.menu_step!;
+            (incomingByStep[step] ??= []).push(p);
+          }
+          setProductsByStep(prev => ({ ...prev, ...incomingByStep }));
+
+          // Pre-seed quantities from the backend's recommended_quantity field.
+          // Only set a quantity when the product carries a suggestion AND the user
+          // has not already manually adjusted that product's quantity (keep manual
+          // changes intact so a re-run after preference changes doesn't reset them).
+          const suggestions: Record<string, number> = {};
+          for (const p of withStep) {
+            if (p.recommended_quantity != null && p.recommended_quantity > 0) {
+              suggestions[p.id] = p.recommended_quantity;
             }
-            return next;
-          });
+          }
+          if (Object.keys(suggestions).length > 0) {
+            setMenuQuantities(prev => ({
+              ...suggestions,   // new recommendations as the base
+              ...prev,          // keep any quantity the user already touched manually
+            }));
+          }
         }
 
         // Fallback: products without menu_step go to the legacy panel

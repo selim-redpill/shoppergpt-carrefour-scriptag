@@ -20,6 +20,8 @@ function buildProduct(p: Record<string, unknown>): Product | null {
     description: String(p.description ?? ""),
     category: String(p.category ?? p.categorie ?? p.type ?? "Traiteur"),
     menu_step: p.menu_step ? String(p.menu_step) : undefined,
+    recommended_quantity:
+      p.recommended_quantity != null ? Number(p.recommended_quantity) : undefined,
   };
 }
 

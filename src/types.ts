@@ -8,6 +8,8 @@ export interface Product {
   description?: string;
   category?: string;
   menu_step?: string;
+  /** Pre-computed quantity suggestion from the backend (ceil(guests / persons)). */
+  recommended_quantity?: number;
 }
 
 export interface Message {
